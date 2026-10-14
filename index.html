@@ -334,12 +334,13 @@ footer.site { max-width: var(--measure); margin: 3.5rem auto 0; font-family: var
   }
   const panels = [{ cv: document.getElementById('cv-a'), cnt: document.getElementById('cnt-a'), key: 'a' }, { cv: document.getElementById('cv-b'), cnt: document.getElementById('cnt-b'), key: 'b' }];
   document.getElementById('build').style.setProperty('--ar', (bw / bh).toFixed(4));
-  let order = 'real', drawnTo = -1, t = NF, playing = false, raf = 0, last = 0;
+  let order = 'real', drawnTo = -1, t = NF, playing = false, raf = 0, t0 = 0, tStart = 0;
   const range = document.getElementById('trk-time'), clock = document.getElementById('trk-clock'), play = document.getElementById('trk-play'), playLab = document.getElementById('trk-play-label');
   const color = () => order === 'real' ? [96, 168, 255] : [245, 128, 80];
-  function size() { for (const p of panels) { const r = p.cv.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2); p.cv.width = Math.max(1, Math.round(r.width * d)); p.cv.height = Math.max(1, Math.round(r.width * d * bh / bw)); p.ctx = p.cv.getContext('2d'); } }
+  function size() { let ok = true; for (const p of panels) { const r = p.cv.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2); if (r.width < 20) { ok = false; continue; } p.cv.width = Math.round(r.width * d); p.cv.height = Math.round(r.width * d * bh / bw); p.ctx = p.cv.getContext('2d'); } return ok; }
   function clear() {
     for (const p of panels) {
+      if (!p.ctx) continue;
       const c = p.ctx, W = p.cv.width, H = p.cv.height, s = W / bw;
       c.globalCompositeOperation = 'source-over'; c.fillStyle = '#07080c'; c.fillRect(0, 0, W, H);
       c.setLineDash([2 * s / 6, 4 * s / 6]); c.strokeStyle = 'rgba(255,255,255,0.28)'; c.lineWidth = Math.max(1, s / 7);
@@ -354,6 +355,7 @@ footer.site { max-width: var(--measure); margin: 3.5rem auto 0; font-family: var
   function drawTo(frame) {
     const upto = Math.floor(frame / BUCKET), [r, g, b] = color();
     for (const p of panels) {
+      if (!p.ctx) continue;
       const c = p.ctx, s = p.cv.width / bw, set = sets[p.key + '_' + order];
       c.globalCompositeOperation = 'source-over';
       for (let k = drawnTo + 1; k <= upto && k < set.buckets.length; k++) {
@@ -373,24 +375,26 @@ footer.site { max-width: var(--measure); margin: 3.5rem auto 0; font-family: var
   function stop() { playing = false; cancelAnimationFrame(raf); play.classList.remove('playing'); play.setAttribute('aria-label', 'Play'); playLab.textContent = t >= NF ? 'Watch it build' : 'Play'; }
   function tick(now) {
     if (!playing) return;
-    const dt = last ? Math.min(0.1, (now - last) / 1000) : 0; last = now;
-    t = Math.min(NF, t + dt * NF / 12); drawTo(t); show(Math.floor(t));
+    if (!t0) t0 = now;
+    t = Math.min(NF, tStart + (now - t0) / 1000 * NF / 12); drawTo(t); show(Math.floor(t));
     if (t >= NF) { stop(); return; }
     raf = requestAnimationFrame(tick);
   }
   play.addEventListener('click', () => {
     if (playing) { stop(); return; }
     if (t >= NF) { t = 0; clear(); }
-    playing = true; last = 0; play.classList.add('playing'); play.setAttribute('aria-label', 'Pause'); playLab.textContent = 'Pause';
+    playing = true; t0 = 0; tStart = t; play.classList.add('playing'); play.setAttribute('aria-label', 'Pause'); playLab.textContent = 'Pause';
     raf = requestAnimationFrame(tick);
   });
   range.addEventListener('input', () => { if (playing) stop(); t = Number(range.value); redraw(); });
   const btnR = document.getElementById('ord-real'), btnS = document.getElementById('ord-shuf');
   const setOrder = (o) => { order = o; btnR.setAttribute('aria-pressed', o === 'real'); btnS.setAttribute('aria-pressed', o === 'shuf'); labels(); redraw(); };
   btnR.addEventListener('click', () => setOrder('real')); btnS.addEventListener('click', () => setOrder('shuf'));
-  let rt = 0; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { size(); redraw(); }, 120); });
-  size(); labels(); redraw();
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { size(); redraw(); });
+  labels(); if (size()) redraw();
+  let lastW = 0;
+  if (window.ResizeObserver) new ResizeObserver(() => { const w = panels[0].cv.getBoundingClientRect().width; if (Math.abs(w - lastW) > 0.5 && size()) { lastW = w; redraw(); } }).observe(panels[0].cv);
+  else window.addEventListener('resize', () => { if (size()) redraw(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (size()) redraw(); });
 })();
 </script>
 
