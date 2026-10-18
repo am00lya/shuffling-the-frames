@@ -168,7 +168,7 @@ footer.site { max-width: var(--measure); margin: 3.5rem auto 0; font-family: var
     <p class="meta">Amulya Harish · October 2026 · 9 min read</p>
 
     <figure class="hero wide" id="build">
-      <p class="fig-title">After the fix the tracker finds 250 tracks below 3&nbsp;cm instead of 102. With the frames shuffled, it finds almost none.</p>
+      <p class="fig-title" id="fig-title">After the fix the tracker finds 250 tracks below 3&nbsp;cm instead of 102. With the frames shuffled, it finds almost none.</p>
       <div class="build-panels">
         <div class="bp"><div class="cell-head"><span>Before: the files as shipped</span></div>
           <div class="cv-wrap"><canvas id="cv-a" aria-label="Bubble tracks before the fix"></canvas><span class="lbl up" id="up-a">1,130 tracks above 3 cm</span><span class="lbl dn" id="dn-a">102 below 3 cm</span></div></div>
@@ -393,7 +393,11 @@ footer.site { max-width: var(--measure); margin: 3.5rem auto 0; font-family: var
     drawnTo = Math.max(drawnTo, upto);
   }
   function show(frame) { range.value = frame; clock.textContent = Math.round(frame / FPS) + ' s'; }
-  function labels() { for (const p of panels) { const S = sets[p.key + '_' + order]; p.up.textContent = S.up.toLocaleString('en-US') + ' tracks above 3 cm'; p.dn.textContent = S.dn.toLocaleString('en-US') + ' below 3 cm'; } }
+  const figTitle = document.getElementById('fig-title'), realTitle = figTitle.innerHTML;
+  const tot = (k) => sets[k].up + sets[k].dn;
+  function labels() {
+    figTitle.innerHTML = order === 'real' ? realTitle : `Shuffled: the same frames in a random order. A real bubble can’t be followed across shuffled frames, so these are the tracks chance alone makes, ${tot('a_shuf')} and ${tot('b_shuf')} instead of ${tot('a_real').toLocaleString('en-US')} and ${tot('b_real').toLocaleString('en-US')}.`;
+    for (const p of panels) { const S = sets[p.key + '_' + order]; p.up.textContent = S.up.toLocaleString('en-US') + ' tracks above 3 cm'; p.dn.textContent = S.dn.toLocaleString('en-US') + ' below 3 cm'; } }
   function redraw() { clear(); drawTo(t); show(t); }
   function stop() { playing = false; cancelAnimationFrame(raf); play.classList.remove('playing'); play.setAttribute('aria-label', 'Play'); playLab.textContent = t >= NF ? 'Watch it build' : 'Play'; }
   function tick(now) {
