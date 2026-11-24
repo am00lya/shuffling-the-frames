@@ -6,9 +6,9 @@
 <meta name="description" content="Issue report on the hackathon ULM recordings: with the public tracker, many tracks are chance links near the skull and little is tracked below 3 cm. Cause, and a fix.">
 <meta name="robots" content="noindex">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Shuffling the frames">
+<meta property="og:title" content="Shuffling the Frames">
 <meta property="og:description" content="Issue report on the hackathon ULM recordings: with the public tracker, many tracks are chance links near the skull and little is tracked below 3 cm. Cause, and a fix.">
-<meta property="og:image" content="https://am00lya.github.io/shuffling-the-frames/og.png">
+<meta property="og:image" content="https://am00lya.github.io/shuffling-the-frames/og.png?v=2">
 <meta property="og:url" content="https://am00lya.github.io/shuffling-the-frames/">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫧</text></svg>">
@@ -185,7 +185,7 @@ footer.site { max-width: var(--measure); margin: 3.5rem auto 0; font-family: var
     <p class="meta">Amulya Harish · November 2026 · 4 min read</p>
     <p>This is a brief writeup of what I found exploring the two beamformed ULM recordings from the Axo Neurotech hackathon (temporal-045532, occipital-053159), run through Aleph's public tracker unchanged (<a href="https://github.com/alephneuro/microbubbles">alephneuro/microbubbles</a> at ae169ea). I found that many tracks are chance links near the skull, and very little is tracked below 3&nbsp;cm. Both come mainly from a missing depth correction on the shared data and can be fixed with a small alteration.</p>
     <h2>Checking the Data:</h2>
-    <p>When I took a look at the recordings, I wanted to see how I could improve the resolution of the images in any way. The first check I did was to shuffle the frame order within each 512-frame block and check what traces survived to see how much noise there was in the data. With this method, detections are unchanged but no bubble can be followed across frames, so any surviving track must come from random chance. I used the recipe from aleph’s README, using tracks of ≥5 points, and comparing the amount of traces found with the real order against the shuffled one:</p>
+    <p>When I took a look at the recordings, I wanted to see how I could improve the resolution of the images in any way. The first check I did was to shuffle the frame order within each 512-frame block and check what traces survived to see how much noise there was in the data. With this method, detections are unchanged but no bubble can be followed across frames, so any surviving track must come from random chance. I used the recipe from Aleph’s README, using tracks of ≥5 points, and comparing the amount of traces found with the real order against the shuffled one:</p>
     <ul><li><strong>Temporal, first 28&nbsp;s: 193 against 199.</strong> Almost all detected traces seem to be random.</li><li><strong>Temporal, last 28&nbsp;s: 675 against 9. </strong>Almost all detected traces seem to be real.</li><li><strong>Occipital, all 26&nbsp;s: 1,261 against 861. </strong>About 2/3 of the detected traces seem to be random.</li></ul>
         <figure class="wide" id="blocks">
       <div class="chartwrap">
